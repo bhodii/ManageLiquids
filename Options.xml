@@ -1,0 +1,16 @@
+<options>
+  <option ID="BhodiOptionManagesLiquidWater"         DisplayText="Manage Water" Category="Manage Liquids" Type="Checkbox" Default="Yes" SearchKeywords="Water"></option>
+  <option ID="BhodiOptionManagesLiquidWaterReserve"  Requires="BhodiOptionManagesLiquidWater==Yes" DisplayText="Amount to reserve when consolidating Water" Category="Manage Liquids" Type="Slider" Min="0" Max="64" Increment="1" Default="0" SearchKeywords="Water"></option>
+  <option ID="BhodiOptionManagesLiquidHoney"         DisplayText="Manage Honey" Category="Manage Liquids" Type="Checkbox" Default="No" SearchKeywords="Honey"></option>
+  <option ID="BhodiOptionManagesLiquidHoneyReserve"  Requires="BhodiOptionManagesLiquidHoney==Yes" DisplayText="Amount to reserve when consolidating Honey" Category="Manage Liquids" Type="Slider" Min="0" Max="64" Increment="1" Default="0" SearchKeywords="Honey"></option>
+  <option ID="BhodiOptionManagesLiquidCider"         DisplayText="Manage Cider" Category="Manage Liquids" Type="Checkbox" Default="No" SearchKeywords="Cider"></option>
+  <option ID="BhodiOptionManagesLiquidCiderReserve"  Requires="BhodiOptionManagesLiquidCider==Yes" DisplayText="Amount to reserve when consolidating Cider" Category="Manage Liquids" Type="Slider" Min="0" Max="64" Increment="1" Default="0" SearchKeywords="Cider"></option>
+  <option ID="BhodiOptionManagesLiquidOil"           DisplayText="Manage Oil" Category="Manage Liquids" Type="Checkbox" Default="No" SearchKeywords="Oil"></option>
+  <option ID="BhodiOptionManagesLiquidOilReserve"    Requires="BhodiOptionManagesLiquidOil==Yes" DisplayText="Amount to reserve when consolidating Oil" Category="Manage Liquids" Type="Slider" Min="0" Max="64" Increment="1" Default="0" SearchKeywords="Oil"></option>
+  <option ID="BhodiOptionManagesLiquidAcid"           DisplayText="Manage Acid" Category="Manage Liquids" Type="Checkbox" Default="No" SearchKeywords="Acid"></option>
+  <option ID="BhodiOptionManagesLiquidAcidReserve"    Requires="BhodiOptionManagesLiquidAcid==Yes" DisplayText="Amount to reserve when consolidating Acid" Category="Manage Liquids" Type="Slider" Min="0" Max="64" Increment="1" Default="0" SearchKeywords="Acid"></option>
+  <option ID="BhodiOptionManagesLiquidBlood"           DisplayText="Manage Blood" Category="Manage Liquids" Type="Checkbox" Default="No" SearchKeywords="Blood"></option>
+  <option ID="BhodiOptionManagesLiquidBloodReserve"    Requires="BhodiOptionManagesLiquidBlood==Yes" DisplayText="Amount to reserve when consolidating Blood" Category="Manage Liquids" Type="Slider" Min="0" Max="64" Increment="1" Default="0" SearchKeywords="Blood"></option>
+  <option ID="BhodiOptionManagesLiquidAll"           DisplayText="Manage other liquids" Category="Manage Liquids" Type="Checkbox" Default="No" SearchKeywords="Liquid Fluid"></option>
+  <option ID="BhodiOptionManagesLiquidAllReserve"    Requires="BhodiOptionManagesLiquidAll==Yes" DisplayText="Amount to reserve when consolidating other liquids" Category="Manage Liquids" Type="Slider" Min="0" Max="64" Increment="1" Default="0" SearchKeywords="Water"></option>
+</options>
