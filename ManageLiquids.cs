@@ -121,7 +121,7 @@ namespace XRL.World.Parts {
                           .ThenBy(o => o.MaxVolume)
                           .FirstOrDefault();
       }
-//      XRL.Messages.MessageQueue.AddPlayerMessage($"CFound: {newContainer?.ParentObject?.DisplayName} FuelLiquid:{newContainer?.ParentObject?.GetPart<LiquidFueledEnergyCell>()?.Liquid} Pure:{newContainer?.IsPureLiquid()}");
+//      LogInfo($"CAdded: {newContainer?.ParentObject?.DisplayName} FuelLiquid:{newContainer?.ParentObject?.GetPart<LiquidFueledEnergyCell>()?.Liquid} Pure:{newContainer?.IsPureLiquid()}");
       
       return newContainer;
     }
@@ -131,8 +131,16 @@ namespace XRL.World.Parts {
     }
     
     public static void MergeContainer(List<LiquidVolume> volumeList, int reserveDesired = 0, bool displayMessage = true) {
+      if (volumeList.Count < 2) {
+        if (displayMessage) {
+          DisplayReport(volumeList, reserveDesired);
+        }
+        return;
+      }
+
       volumeList.Sort(CompareContainer);
-//      LogInfo($"MergeContainer: {volumeList[0].GetLiquidName()}:{volumeList[1].GetLiquidName()}:{volumeList.Count}");
+
+      // LogInfo($"MergeContainer: {volumeList[0].GetLiquidName()}:{volumeList[1].GetLiquidName()}:{volumeList.Count}");
 
       //foreach (var lv in volumeList) {
       //  LogInfo("Unsort:" + lv.ParentObject.DisplayName);
@@ -217,23 +225,22 @@ namespace XRL.World.Parts {
           liquidContainersByType[container].AddIfNotNull(newContainer);
         }
 
-        if (liquidContainersByType[container].Count < 2) { continue; }
         switch (container) {
           // NOPE!
           case ("neutronflux"): break;
 
           case string liquid when IsManaged(liquid):
             MergeContainer(volumeList: liquidContainersByType[container],
-                           reserveDesired: ManagedReserveAmount(liquid+"Reserve"),
-                           displayMessage: displayMessage);
+                            reserveDesired: ManagedReserveAmount(liquid + "Reserve"),
+                            displayMessage: displayMessage);
             break;
-          
+
           default:
-            var optionLiquids = new List<string>() { "water", "honey", "cider", "oil", "acid" };
+            var optionLiquids = new List<string>() { "water", "honey", "cider", "oil", "acid", "blood" };
             if (IsManaged("All") && !optionLiquids.Contains(container)) {
               MergeContainer(volumeList: liquidContainersByType[container],
-                             reserveDesired: ManagedReserveAmount("AllReserve"),
-                             displayMessage: displayMessage);
+                              reserveDesired: ManagedReserveAmount("AllReserve"),
+                              displayMessage: displayMessage);
             }
             break;
         }
