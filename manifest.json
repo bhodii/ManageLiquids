@@ -1,8 +1,8 @@
 {
 	"ID": "ManageLiquids",
 	"Title": "Manage Liquids",
-	"Description": "Manages Liquids in inventory. Consolidate, Split, and More!",
-	"Version": "0.5.1",
+	"Description": "Manages Liquids in inventory. Consolidate, Reserve, and More!",
+	"Version": "0.5.2",
 	"Author": "Bhodi",
 	"PreviewImage": "preview.png"
 }
