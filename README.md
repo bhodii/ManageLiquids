@@ -16,8 +16,9 @@ Features include:
 
 You can find it on it's [Steam workshop page](https://steamcommunity.com/sharedfiles/filedetails/?id=3316416182).
 
-## Changelog
+### Changelog
 
-### Released
+#### Released
 
+- v0.5.1 Changed output message to be less noisy (2024-08-25)
 - v0.5.0 Initial Workshop Release (2024-08-24)

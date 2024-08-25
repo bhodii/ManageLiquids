@@ -180,15 +180,18 @@ namespace XRL.World.Parts {
         heavyMessage = "{{r|*" + heavyCount + " Heavy* }}";
       }
 
-      string reservedMessage = "reserved ";
-      if (reservedAmount == reserveDesired || volumeList.Any(v => v.Volume == reserveDesired)) {
-        reservedMessage += reserveDesired;
-      } else {
-        reservedMessage += "{{r|" + reservedAmount + "}} of " + reserveDesired;
-      }
-
+      string reservedMessage = "";
+      if (reserveDesired > 0) {
+        reservedMessage = "(R:";
+        if (reservedAmount == reserveDesired || volumeList.Any(v => v.Volume == reserveDesired)) {
+          reservedMessage += reserveDesired;
+        } else {
+          reservedMessage += "{{r|" + reservedAmount + "}} of " + reserveDesired;
+        }
+        reservedMessage += ")";
+      } 
       if (displayMessage) {
-        XRL.Messages.MessageQueue.AddPlayerMessage("[{{" + volumeList[0].GetPrimaryLiquidColor() + "|" + volumeList[0].GetLiquidName() + "}}] " + volumeList.Sum(v => v.Volume) + " drams (" + reservedMessage + ") " + heavyMessage);
+        XRL.Messages.MessageQueue.AddPlayerMessage("[{{" + volumeList[0].GetPrimaryLiquidColor() + "|" + volumeList[0].GetLiquidName() + "}}] " + volumeList.Sum(v => v.Volume) + " drams " + reservedMessage + heavyMessage);
       }
     }
 
