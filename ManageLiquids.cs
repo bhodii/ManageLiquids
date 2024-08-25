@@ -60,10 +60,10 @@ namespace XRL.World.Parts {
       } else if (vol2.ParentObject.HasPart("LiquidFueledEnergyCell")) {
         return 1;
       }
-      // Deproiritize auto-collecting containers
-      if (vol1.ParentObject.GetPropertyOrTag("InventoryActionsAutoCollectLiquid") == "1") {
+      // Deproiritize auto-collecting containers, except over phials
+      if (vol1.ParentObject.GetPropertyOrTag("InventoryActionsAutoCollectLiquid") == "1" && vol2.MaxVolume > 1) {
         return 1;
-      } else if (vol2.ParentObject.GetPropertyOrTag("InventoryActionsAutoCollectLiquid") == "1") {
+      } else if (vol2.ParentObject.GetPropertyOrTag("InventoryActionsAutoCollectLiquid") == "1" && vol1.MaxVolume > 1) {
         return -1;
       }
       // Prioritize Equipped Camel Bladder
@@ -129,10 +129,14 @@ namespace XRL.World.Parts {
     private static void TransferLiquid(LiquidVolume vol1, LiquidVolume vol2, int amount) {
       vol2.MixWith(Liquid: vol1, Amount: amount);
     }
-
+    
     public static void MergeContainer(List<LiquidVolume> volumeList, int reserveDesired = 0, bool displayMessage = true) {
       volumeList.Sort(CompareContainer);
-      //XRL.Messages.MessageQueue.AddPlayerMessage($"EnterMerge: {volumeList[0].GetLiquidName()}:{volumeList[1].GetLiquidName()}:{volumeList.Count}");
+//      LogInfo($"MergeContainer: {volumeList[0].GetLiquidName()}:{volumeList[1].GetLiquidName()}:{volumeList.Count}");
+
+      //foreach (var lv in volumeList) {
+      //  LogInfo("Unsort:" + lv.ParentObject.DisplayName);
+      //}
 
       // Merge all liquids to the front of the sorted list
       int j = 0;
@@ -147,70 +151,41 @@ namespace XRL.World.Parts {
         }
       }
 
-      // Transfer the reserve
-      int reservedAmount = 0;
-      j = 0;
       //foreach (var lv in volumeList) {
-      //  XRL.Messages.MessageQueue.AddPlayerMessage(lv.ParentObject.DisplayName);
+      //  LogInfo("Merged:" + lv.ParentObject.DisplayName);
       //}
+
+      // Transfer the reserve
+      int reserveAmount = 0;
+      j = 0;
       for (int i = 0; i < volumeList.Count; i++) {
         if (volumeList[i].ParentObject.HasPart("LiquidFueledEnergyCell")) { j = i + 1; continue; }
-//        XRL.Messages.MessageQueue.AddPlayerMessage($"i:{i}:{volumeList[i].Volume} j:{j}:{volumeList[j].Volume} r:{reserveDesired}");
+//        LogInfo($"i:{i}:{volumeList[i].Volume} j:{j}:{volumeList[j].Volume} r:{reserveDesired}");
         if ((volumeList[i].Volume >= reserveDesired && volumeList[i].Volume <= volumeList[j].Volume)
           && !volumeList[j].ParentObject.HasPart("LiquidFueledEnergyCell")) {
           j = i;
         }
       }
-//      XRL.Messages.MessageQueue.AddPlayerMessage($"j:{j}:{volumeList[j].Volume} count-1:{volumeList.Count - 1}");
+//      LogInfo($"j:{j}:{volumeList[j].Volume} count-1:{volumeList.Count - 1}");
       if (j < volumeList.Count - 1) {
         int xfer = Math.Min(reserveDesired, volumeList[j + 1].MaxVolume - volumeList[j + 1].Volume);
-//        XRL.Messages.MessageQueue.AddPlayerMessage($"xfer {xfer}");
+//        LogInfo($"xfer {xfer}");
         TransferLiquid(volumeList[j], volumeList[j + 1], xfer);
-        reservedAmount = volumeList[j + 1].Volume;
+        reserveAmount = volumeList[j + 1].Volume;
       }
 
-      int heavyCount = 0;
-      string heavyMessage = "";
-      for (int i = 0; i < volumeList.Count; i++) {
-        if (volumeList[i].Volume > 0 && volumeList[i].ParentObject.IntrinsicWeight > 1 && !volumeList[i].ParentObject.HasPart("LiquidFueledEnergyCell")) {
-          heavyCount++;
-        }
-      }
-      if (heavyCount > 0) {
-        heavyMessage = "{{r|*" + heavyCount + " Heavy* }}";
-      }
+      //foreach (var lv in volumeList) {
+      //  LogInfo("Reserv:" + lv.ParentObject.DisplayName);
+      //}
 
-      string reservedMessage = "";
-      if (reserveDesired > 0) {
-        reservedMessage = "(R:";
-        if (reservedAmount == reserveDesired || volumeList.Any(v => v.Volume == reserveDesired)) {
-          reservedMessage += reserveDesired;
-        } else {
-          reservedMessage += "{{r|" + reservedAmount + "}} of " + reserveDesired;
-        }
-        reservedMessage += ")";
-      } 
       if (displayMessage) {
-        XRL.Messages.MessageQueue.AddPlayerMessage("[{{" + volumeList[0].GetPrimaryLiquidColor() + "|" + volumeList[0].GetLiquidName() + "}}] " + volumeList.Sum(v => v.Volume) + " drams " + reservedMessage + heavyMessage);
+        DisplayReport(volumeList, reserveDesired, reserveAmount);
       }
-    }
-
-    private string RummageMessage() {
-      var verb = new List<string> { "search", "comb", "rifle", "poke", "rattle" }.ShuffleInPlace(ManageLiquids_Random.Rand);
-      var noun = new List<string> { "equipment", "stuff", "gear", "pack", "inventory" }.ShuffleInPlace(ManageLiquids_Random.Rand);
-      var verbing = new List<string> { "emptying", "draining", "spilling", "unloading", "dumping" }.ShuffleInPlace(ManageLiquids_Random.Rand);
-      var amount = new List<string> { "some", "a little", "a morsel", "a dab", "a drop", "a tad", "a portion",
-                                     "a part", "a portion", "an amount", "a fraction", "a mite", "a pinch", "a whisper",
-                                     "a taste", "a scintilla", "a speck", "a whisper", "an iota", "a smidgen" }.ShuffleInPlace(ManageLiquids_Random.Rand);
-      var thing = new List<string> { "this", "that" }.ShuffleInPlace(ManageLiquids_Random.Rand);
-            
-      return $"You {verb[0]} around in your {noun[0]}, {verbing[0]} {amount[0]} of {thing[0]} into {amount[1]} of {thing[1]}.";
     }
 
     public void RearrangeAllLiquids(bool displayMessage = true) {
-
       if (displayMessage) {
-        XRL.Messages.MessageQueue.AddPlayerMessage(RummageMessage());
+        XRL.Messages.MessageQueue.AddPlayerMessage(DisplayRummage());
       }
 
       PlayWorldSound("Sounds/Interact/sfx_interact_liquidContainer_pourout");
@@ -227,10 +202,6 @@ namespace XRL.World.Parts {
         .ToDictionary(g => g.Key, g => g.ToList());
 
       foreach (var container in liquidContainersByType.Keys) {
-
-        //foreach (var lv in liquidContainersByType[container]) {
-        //  XRL.Messages.MessageQueue.AddPlayerMessage($"C:{container}:{lv.ParentObject.DisplayName}");
-        //}
 
         // If there's a heavy container or only one try to add an empty container to the list
         if (liquidContainersByType[container].Max(w => w.ParentObject.IntrinsicWeight > 1)
@@ -268,6 +239,49 @@ namespace XRL.World.Parts {
         }
       }
     }
+
+    private static void DisplayReport(List<LiquidVolume> volumeList, int reserveDesired = 0, int reserveAmount = 0) {
+      int heavyCount = 0;
+      string heavyMessage = "";
+      for (int i = 0; i < volumeList.Count; i++) {
+        if (volumeList[i].Volume > 0 && volumeList[i].ParentObject.IntrinsicWeight > 1 && !volumeList[i].ParentObject.HasPart("LiquidFueledEnergyCell")) {
+          heavyCount++;
+        }
+      }
+      if (heavyCount > 0) {
+        heavyMessage = "{{r|*" + heavyCount + " Heavy* }}";
+      }
+
+      string reservedMessage = "";
+      if (reserveDesired > 0) {
+        reservedMessage = "(R:";
+        if (reserveAmount == reserveDesired || volumeList.Any(v => v.Volume == reserveDesired)) {
+          reservedMessage += reserveDesired;
+        } else {
+          reservedMessage += "{{r|" + reserveAmount + "}} of " + reserveDesired;
+        }
+        reservedMessage += ")";
+      }
+
+      XRL.Messages.MessageQueue.AddPlayerMessage("[{{" + volumeList[0].GetPrimaryLiquidColor() + "|" + volumeList[0].GetLiquidName() + "}}] " + volumeList.Sum(v => v.Volume) + " drams " + reservedMessage + heavyMessage);
+    }
+
+    private string DisplayRummage() {
+      var verb = new List<string> { "search", "comb", "rifle", "poke", "rattle" }.ShuffleInPlace(ManageLiquids_Random.Rand);
+      var noun = new List<string> { "equipment", "stuff", "gear", "pack", "inventory" }.ShuffleInPlace(ManageLiquids_Random.Rand);
+      var verbing = new List<string> { "emptying", "draining", "spilling", "unloading", "dumping" }.ShuffleInPlace(ManageLiquids_Random.Rand);
+      var amount = new List<string> { "some", "a little", "a bit", "a dab", "a drop", "a tad",
+                                     "a part", "a portion", "a fraction", "a mite", "a pinch" }.ShuffleInPlace(ManageLiquids_Random.Rand);
+
+      var thing = new List<string> { "this", "that" }.ShuffleInPlace(ManageLiquids_Random.Rand);
+
+      return $"You {verb[0]} around in your {noun[0]}, {verbing[0]} {amount[0]} of {thing[0]} into {amount[1]} of {thing[1]}.";
+    }
+    public static void LogInfo(string message) {
+//      UnityEngine.Debug.Log("INFO - " + message);
+      XRL.Messages.MessageQueue.AddPlayerMessage(message);
+    }
+
     public override bool WantEvent(int ID, int Propagation) {
       return base.WantEvent(ID, Propagation)
              || ID == OwnerGetInventoryActionsEvent.ID
