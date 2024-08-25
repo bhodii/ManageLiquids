@@ -6,6 +6,7 @@ using XRL.Core;
 using XRL.World;
 using XRL.World.Parts;
 using Bhodi_ManageLiquids.Utilities;
+using System.Collections.Immutable;
 
 namespace Bhodi_ManageLiquids {
   [PlayerMutator]
@@ -87,16 +88,16 @@ namespace XRL.World.Parts {
     }
     
     private static LiquidVolume GetEmptyContainer(List<GameObject> inventory = null, bool requireInOrganic = false, bool requireFireproof = false) {
-      // Return the lightest, largest LiquidVolume not already auto-collecting
       var inv = inventory ?? The.Player.GetInventory();
 
+      // Looking for the lightest, largest LiquidVolume not already auto-collecting
       LiquidVolume newContainer = null;
       if (requireInOrganic) {
         newContainer = inv.Select(o => o.GetPart<LiquidVolume>())
                           .Where(lv => lv is not null
                                     && lv.IsEmpty()
                                     && !lv.ParentObject.HasPart("LiquidFueledEnergyCell")
-                                    && lv.GetPropertyOrTag("InventoryActionsAutoCollectLiquid") != "1"
+                                    && lv.AutoCollectLiquidType is null
                                     && !lv.ParentObject.IsOrganic)
                           .OrderBy(o => o.ParentObject.IntrinsicWeight)
                           .ThenBy(o => o.MaxVolume)
@@ -106,7 +107,7 @@ namespace XRL.World.Parts {
                           .Where(lv => lv is not null
                                     && lv.IsEmpty()
                                     && !lv.ParentObject.HasPart("LiquidFueledEnergyCell")
-                                    && lv.GetPropertyOrTag("InventoryActionsAutoCollectLiquid") != "1"
+                                    && lv.AutoCollectLiquidType is null
                                     && lv.ParentObject.Physics.FlameTemperature == 99999)
                           .OrderBy(o => o.ParentObject.IntrinsicWeight)
                           .ThenBy(o => o.MaxVolume)
@@ -116,12 +117,12 @@ namespace XRL.World.Parts {
                           .Where(lv => lv is not null
                                     && lv.IsEmpty()
                                     && !lv.ParentObject.HasPart("LiquidFueledEnergyCell")
-                                    && lv.GetPropertyOrTag("InventoryActionsAutoCollectLiquid") != "1")
+                                    && lv.AutoCollectLiquidType is null)
                           .OrderBy(o => o.ParentObject.IntrinsicWeight)
-                          .ThenBy(o => o.MaxVolume)
+                          .ThenByDescending(o => o.MaxVolume)
                           .FirstOrDefault();
       }
-//      LogInfo($"CAdded: {newContainer?.ParentObject?.DisplayName} FuelLiquid:{newContainer?.ParentObject?.GetPart<LiquidFueledEnergyCell>()?.Liquid} Pure:{newContainer?.IsPureLiquid()}");
+      //LogInfo($"Container Added: {newContainer?.ParentObject?.DisplayName}");
       
       return newContainer;
     }
@@ -131,6 +132,10 @@ namespace XRL.World.Parts {
     }
     
     public static void MergeContainer(List<LiquidVolume> volumeList, int reserveDesired = 0, bool displayMessage = true) {
+      //foreach (var lv in volumeList) {
+      //  LogInfo("Unsort:" + lv.ParentObject.DisplayName);
+      //}
+
       if (volumeList.Count < 2) {
         if (displayMessage) {
           DisplayReport(volumeList, reserveDesired);
@@ -140,10 +145,8 @@ namespace XRL.World.Parts {
 
       volumeList.Sort(CompareContainer);
 
-      // LogInfo($"MergeContainer: {volumeList[0].GetLiquidName()}:{volumeList[1].GetLiquidName()}:{volumeList.Count}");
-
       //foreach (var lv in volumeList) {
-      //  LogInfo("Unsort:" + lv.ParentObject.DisplayName);
+      //  LogInfo("Sorted:" + lv.ParentObject.DisplayName);
       //}
 
       // Merge all liquids to the front of the sorted list
@@ -165,19 +168,19 @@ namespace XRL.World.Parts {
 
       // Transfer the reserve
       int reserveAmount = 0;
-      j = 0;
+      j = 0; // Container j with >= reserveDesired to transfer from
       for (int i = 0; i < volumeList.Count; i++) {
         if (volumeList[i].ParentObject.HasPart("LiquidFueledEnergyCell")) { j = i + 1; continue; }
-//        LogInfo($"i:{i}:{volumeList[i].Volume} j:{j}:{volumeList[j].Volume} r:{reserveDesired}");
+        //LogInfo($"i:{i}:{volumeList[i].Volume} j:{j}:{volumeList[j].Volume} r:{reserveDesired}");
         if ((volumeList[i].Volume >= reserveDesired && volumeList[i].Volume <= volumeList[j].Volume)
           && !volumeList[j].ParentObject.HasPart("LiquidFueledEnergyCell")) {
           j = i;
         }
       }
-//      LogInfo($"j:{j}:{volumeList[j].Volume} count-1:{volumeList.Count - 1}");
-      if (j < volumeList.Count - 1) {
+      //LogInfo($"j:{j}:{volumeList[j].Volume} count-1:{volumeList.Count - 1}");
+      if (j < volumeList.Count - 1 && volumeList[j].Volume != reserveDesired) {
         int xfer = Math.Min(reserveDesired, volumeList[j + 1].MaxVolume - volumeList[j + 1].Volume);
-//        LogInfo($"xfer {xfer}");
+        //LogInfo($"xfer {xfer}");
         TransferLiquid(volumeList[j], volumeList[j + 1], xfer);
         reserveAmount = volumeList[j + 1].Volume;
       }
@@ -209,11 +212,11 @@ namespace XRL.World.Parts {
         .GroupBy(lv => lv.ParentObject?.GetPart<LiquidFueledEnergyCell>()?.Liquid ?? lv.GetPrimaryLiquid().ID)
         .ToDictionary(g => g.Key, g => g.ToList());
 
-      foreach (var container in liquidContainersByType.Keys) {
-
-        // If there's a heavy container or only one try to add an empty container to the list
+      foreach (var container in liquidContainersByType.Keys.OrderByDescending(k => liquidContainersByType[k].Sum(v => v.Volume))) {
+        // If there's a heavy container, phial or only one try to add an empty container to the list
         if (liquidContainersByType[container].Max(w => w.ParentObject.IntrinsicWeight > 1)
-          || liquidContainersByType[container].Count <= 1) {
+          || liquidContainersByType[container].Count <= 1
+          || (liquidContainersByType[container].Any(v => v.Volume == 1))) {
           LiquidVolume newContainer;
           if (container == "lava") {
             newContainer = GetEmptyContainer(inventory, requireFireproof: true);
