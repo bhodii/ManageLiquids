@@ -16,9 +16,7 @@ Features include:
 
 You can find it on it's [Steam workshop page](https://steamcommunity.com/sharedfiles/filedetails/?id=3316416182).
 
-### Changelog
-
-#### Released
+#### Changelog
 - V0.5.3 Sorted liquids output by descending volume, corrected auto-collect key in sorting logic (2024-08-25)
 - v0.5.2 Deprioritized Phials when sorting against auto-collect containers (2024-08-25)
 - v0.5.1 Changed output message to be less noisy (2024-08-25)
