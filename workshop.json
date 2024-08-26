@@ -1,6 +1,6 @@
 {
   "WorkshopId": 3316416182,
-  "Title": "Consolidate Liquids",
+  "Title": "Manage Liquids",
   "Description": "This mod manages inventory liquids. When configured in the (o)ptions menu and then activated through player's (l)ook menu, it sorts your inventory liquids.\r\n\r\nFeatures:\r\n\r\n* Consolidates liquids in inventory containers, taking into account size and weight\r\n* Reserves a configurable amount of liquid to be kept separate (for ease of dropping/selling the consolidated excess)\r\n* Configurable liquid types - Water, Honey, Cider, Oil, Acid, Blood, and Other\r\n* Refills liquid-based cells\r\n* Handles dangerous liquids (acid in canteen, lava in phial, etc.)\r\n* Works with any mods that add additional containers\r\n* Can be safely removed from and added to existing saves",
   "Tags": "Script, QoL, Utility, Interface, Water, Liquid",
   "Visibility": "2",
